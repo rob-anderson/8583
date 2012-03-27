@@ -1,3 +1,4 @@
+$:.unshift(File.dirname(__FILE__) + "/../")
 require 'lib/8583'
 require 'lib/8583/berlin'
 require 'test/unit'
@@ -47,7 +48,7 @@ class MessageTest < Test::Unit::TestCase
 
   def test_to_s
     mes     = BerlinMessage.new
-    mes.mti = "Network Management Request Response Issuer Gateway or Acquirer Gateway" 
+    mes.mti = "Network Management Request Response Issuer Gateway or Acquirer Gateway"
     mes[2]  = 12341234
     mes[3]  = 1111
     mes[4]  = 100
@@ -80,7 +81,7 @@ class MessageTest < Test::Unit::TestCase
     mes[56] = 88888888888
     mes[59] = "I'm you're private data, data for money..."
     mes[64] = "\xF0\xF0\xF0\xF0"
-    
+
     expected = <<-END
 MTI:1814 (Network Management Request Response Issuer Gateway or Acquirer Gateway)
 
@@ -122,7 +123,7 @@ END
 
   def test_round_trip
     mes     = BerlinMessage.new
-    mes.mti = "Network Management Request Response Issuer Gateway or Acquirer Gateway" 
+    mes.mti = "Network Management Request Response Issuer Gateway or Acquirer Gateway"
     mes[2]  = 12341234
     mes[3]  = 1111
     mes[4]  = 100
@@ -160,4 +161,12 @@ END
     mes2 = BerlinMessage.parse(mes.to_b)
     assert_equal(mes.to_b, mes2.to_b)
   end
+
+  class Berlin2 < BerlinMessage; end
+  def test_subclassing
+    mes = Berlin2.new
+    mes.mti = 1100
+    assert_equal 1100, mes.mti
+  end
+
 end

@@ -2,3 +2,5 @@
 doc/
 pkg/
 tmp/
+
+*.DS_Store

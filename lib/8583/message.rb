@@ -31,8 +31,8 @@ module ISO8583
   #
   #    class MyMessage < Message
   #       (...)
-  #       mti 1100, "Authorization Request Acquirer Gateway"
-  #       mti 1110, "Authorization Request Response Issuer Gateway"
+  #       mti 1100, :authorization_request_acquirer_gateway
+  #       mti 1110, :authorization-request_response_issuer_gateway
   #       (...)
   #    end
   #
@@ -40,9 +40,9 @@ module ISO8583
   # be accessed later either via their name or value:
   #
   #    mes = MyMessage.new 1100
-  # 
+  #
   # or
-  #    mes = MyMessage.new "Authorization Request Acquirer Gateway"
+  #    mes = MyMessage.new :authorization_request_acquirer_gateway
   #
   # or
   #    mes = MyMessage.new
@@ -75,7 +75,7 @@ module ISO8583
   #
   # Constructing own messages works as follows:
   #
-  #     mes = MyMessage.new 1100 
+  #     mes = MyMessage.new 1100
   #     mes[2]= 474747474747
   #     # Alternatively
   #     mes["Primary Account Number (PAN)"]= 4747474747
@@ -106,14 +106,14 @@ module ISO8583
   # Most of the work in implementing a new set of message type lays in
   # figuring out the correct fields to use defining the Message class via
   # bmp.
-  #    
+  #
   class Message
 
     # The value of the MTI (Message Type Indicator) of this message.
-    attr_reader :mti 
+    attr_reader :mti
 
     # Instantiate a new instance of this type of Message
-    # optionally specifying an mti. 
+    # optionally specifying an mti.
     def initialize(mti = nil)
       # values is an internal field used to collect all the
       # bmp number | bmp name | field en/decoders | values
@@ -138,7 +138,7 @@ module ISO8583
       num, name = _get_mti_definition(value)
       @mti = num
     end
-    
+
     # Set a field in this message, `key` is either the
     # bmp number or it's name.
     # ===Example
@@ -149,7 +149,7 @@ module ISO8583
     def []=(key, value)
       bmp_def              = _get_definition key
       bmp_def.value        = value
-      @values[bmp_def.bmp] = bmp_def 
+      @values[bmp_def.bmp] = bmp_def
     end
 
     # Retrieve the decoded value of the contents of a bitmap
@@ -193,7 +193,7 @@ module ISO8583
 
     # METHODS starting with an underscore are meant for
     # internal use only ...
-    
+
     # Returns an array of two byte arrays:
     # [bitmap_bytes, message_bytes]
     def _body
@@ -230,7 +230,7 @@ module ISO8583
 
     class << self
 
-      # Defines how the message type indicator is encoded into bytes. 
+      # Defines how the message type indicator is encoded into bytes.
       # ===Params:
       # * field    : the decoder/encoder for the MTI
       # * opts     : the options to pass to this field
@@ -248,27 +248,27 @@ module ISO8583
       def mti_format(field, opts)
         f = field.dup
         _handle_opts(f, opts)
-        @mti_format = f
+        @@mti_format = f
       end
-      
+
       # Defines the message types allowed for this type of message and
       # gives them names
-      # 
+      #
       # === Example
       #    class MyMessage < Message
       #      (...)
-      #      mti 1100, "Authorization Request Acquirer Gateway"
+      #      mti 1100, :authorization_request_acquirer_gateway
       #    end
       #
       #    mes = MyMessage.new
-      #    mes.mti = 1100 # or mes.mti = "Authorization Request Acquirer Gateway"
+      #    mes.mti = 1100 # or mes.mti = :authorization_request_acquirer_gateway
       #
       # See Also: mti_format
       def mti(value, name)
-        @mtis_v ||= {}
-        @mtis_n ||= {}
-        @mtis_v[value] = name
-        @mtis_n[name]  = value
+        @@mtis_v ||= {}
+        @@mtis_n ||= {}
+        @@mtis_v[value] = name
+        @@mtis_n[name]  = value
       end
 
       # Define a bitmap in the message
@@ -285,25 +285,25 @@ module ISO8583
       #      (...)
       #    end
       #
-      # creates a class MyMessage that allows for a bitmap 2 which 
-      # is named "PAN" and encoded by an LLVAR_N Field. The maximum 
+      # creates a class MyMessage that allows for a bitmap 2 which
+      # is named "PAN" and encoded by an LLVAR_N Field. The maximum
       # length of the value is 19. This class may be used as follows:
       #
       #    mes = MyMessage.new
       #    mes[2] = 474747474747 # or mes["PAN"] = 4747474747
       #
       def bmp(bmp, name, field, opts = nil)
-        @defs ||= {}
+        @@defs ||= {}
 
         field = field.dup
         field.name = name
         field.bmp  = bmp
         _handle_opts(field, opts) if opts
-        
+
         bmp_def = BMP.new bmp, name, field
 
-        @defs[bmp]  = bmp_def
-        @defs[name] = bmp_def
+        @@defs[bmp]  = bmp_def
+        @@defs[name] = bmp_def
       end
 
       # Create an alias to access bitmaps directly using a method.
@@ -337,7 +337,7 @@ module ISO8583
           # @values[bmp] = bmp_def
         }
       end
-      
+
       # Parse the bytes `str` returning a message of the defined type.
       def parse(str)
         message = self.new
@@ -350,7 +350,7 @@ module ISO8583
         }
         message
       end
-      
+
       # access the mti definitions applicable to the Message
       #
       # returns a pair of hashes containing:
@@ -360,20 +360,20 @@ module ISO8583
       # mti_name => mti_value
       #
       def _mti_definitions
-        [@mtis_v, @mtis_n]
+        [@@mtis_v, @@mtis_n]
       end
-      
+
       # Access the field definitions of this class, this is a
       # hash containing [bmp_number, BMP] and [bitmap_name, BMP]
       # pairs.
       #
       def _definitions
-        @defs
+        @@defs
       end
 
       # Returns the field definition to format the mti.
       def _mti_format
-        @mti_format
+        @@mti_format
       end
 
 
